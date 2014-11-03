@@ -38,5 +38,5 @@ print checkmail(mailToCheck, mailToVerify)
 
 ```
 
-*Distributed under **Apache License**.*
+*Distributed under Apache License.*
 
