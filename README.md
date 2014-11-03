@@ -1,8 +1,8 @@
 Mailchecker library
 ===========
 
-Python library provides email checking feature based on telnet
---------------
+*Python library provides email checking feature based on telnet*
+
 
 **Basic methods**
 
@@ -37,3 +37,6 @@ from mailchecker import checkmail
 print checkmail(mailToCheck, mailToVerify)
 
 ```
+
+*Distributed under **Apache License**.*
+
