@@ -1,0 +1,5 @@
+setup.py
+mailchecker.egg-info/PKG-INFO
+mailchecker.egg-info/SOURCES.txt
+mailchecker.egg-info/dependency_links.txt
+mailchecker.egg-info/top_level.txt
