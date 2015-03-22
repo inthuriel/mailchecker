@@ -1,4 +1,10 @@
 setup.py
+mailchecker/__init__.py
+mailchecker/mailchecker.py
+mailchecker/mx.py
+mailchecker/ports.py
+mailchecker/tech.py
+mailchecker/telnetcheck.py
 mailchecker.egg-info/PKG-INFO
 mailchecker.egg-info/SOURCES.txt
 mailchecker.egg-info/dependency_links.txt
