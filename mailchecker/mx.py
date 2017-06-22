@@ -1,27 +1,41 @@
-# -*- coding: utf-8 -*-
-import dns.resolver
-from tech import getdomain
+"""
+Module for checking email's domain MX records
+"""
+from collections import OrderedDict
 from re import sub
-from collections import defaultdict
 
-def getmx(mail):
+import dns.resolver
 
+from .mailchecker_exceptions import LackOfMxDomainException, DnsTimeoutException
+from .support_functions import getdomain
+
+
+def get_mx(mail):
+    """
+    returns ordered dict of MX records for email's domain
+    :param mail: email adress
+    :return: OrderedDict
+    """
     domain = getdomain(mail)
     try:
-        mxes = dns.resolver.query(domain,'MX')
-    except dns.exception.DNSException as e:
-        if isinstance(e, dns.resolver.NoAnswer):
-            raise Exception("noMx", "Can't get MX from DNS server.")
-        elif isinstance(e, dns.resolver.Timeout):
-            raise Exception("timeoutDNS", "DNS Timeout.")
+        mx_list = dns.resolver.query(domain, 'MX')
+    except dns.exception.DNSException as error:
+        if isinstance(error, dns.resolver.NoAnswer):
+            raise LackOfMxDomainException('Can\'t get MX from DNS server.')
+        elif isinstance(error, dns.resolver.Timeout):
+            raise DnsTimeoutException('Timeout on DNS query')
         else:
-            raise Exception("unknownDns", "Unknown DNS exception.")
+            raise Exception('Unknown DNS exception.')
 
-    servers = defaultdict(list)
+    servers = dict()
+    ordered_response = OrderedDict()
 
-    for server in mxes:
-        serverData = str(server).split(' ')
-        serverAdress = sub('\.$', '', serverData[1])
-        servers[int(serverData[0])].append(serverAdress)
+    for server in mx_list:
+        priority, mx_domain = str(server).split(' ')
+        mx_domain = sub(r'\.$', '', mx_domain)
+        servers.setdefault(int(priority), list()).append(mx_domain)
 
-    return sorted(servers.iteritems(), key=lambda k: k[1])
+    for priority in sorted(servers):
+        ordered_response.setdefault(priority, servers.get(priority, list()))
+
+    return ordered_response

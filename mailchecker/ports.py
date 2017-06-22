@@ -1,26 +1,38 @@
-# -*- coding: utf-8 -*-
+"""
+Module for checking open ports on server
+As default uses list of 'email' ports
+"""
 import socket
 
-def getcontypes(server):
-    serverip  = socket.gethostbyname(server)
-    openports = []
+from .mailchecker_exceptions import NoOpenEmailPortsException
+
+
+def get_open_email_ports(server, ports=(25, 465, 143, 993)):
+    """
+    returns list of open ports
+    :param server: FQDN to check
+    :param ports: list of ports to check
+    :return: List
+    """
+    try:
+        server_ip = socket.gethostbyname(server)
+    except socket.gaierror:
+        raise Exception('Can\'t resolve host {}.'.format(server))
+
+    open_ports = list()
 
     try:
-        for port in [25,465,143,993]:
+        for port in ports:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(1)
-            result = sock.connect_ex((serverip, port))
+            result = sock.connect_ex((server_ip, port))
             if result == 0:
-                openports.append(format(port))
+                open_ports.append(str(port))
             sock.close()
 
-        if(len(openports) == 0):
-            raise Exception("noPorts", "No open ports.")
-
-    except socket.gaierror:
-        raise Exception("resolvErr", "Can't resolve host.")
-
+        if not open_ports:
+            raise NoOpenEmailPortsException('No open email ports on server {}.'.format(server))
     except socket.error:
-        raise Exception("connectErr", "Couldn't connect to server.")
+        raise RuntimeError('Can\'t connect to server {} [{}].'.format(server, server_ip))
 
-    return openports
+    return open_ports

@@ -1,10 +1,20 @@
-Metadata-Version: 1.0
+Metadata-Version: 1.1
 Name: mailchecker
-Version: 1.15
-Summary: Simple liblary for existence of email checking
-Home-page: http://dev.metatron.com.pl
-Author: Mikolaj [Metatron] Niedbala
+Version: 1.2.0.dev11
+Summary: Simple library for existence of email checking
+Home-page: https://dev.metatron.com.pl/
+Author: Mikolaj Niedbala
 Author-email: metatron@metatron.com.pl
-License: UNKNOWN
-Description: UNKNOWN
+License: GNU Library or Lesser General Public License (LGPL)
+Description: Simple library for existence of email checking
+Keywords: email
+mail
+telnet
 Platform: UNKNOWN
+Classifier: Programming Language :: Python,
+Classifier: Programming Language :: Python :: 2,
+Classifier: Development Status :: 4 - Beta,
+Classifier: Environment :: Other Environment,
+Classifier: Intended Audience :: Sysadmins,
+Classifier: License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL),
+Classifier: Operating System :: Unix / Linux,

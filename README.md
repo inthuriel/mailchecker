@@ -1,42 +1,52 @@
-Mailchecker library
-===========
+## Mailchecker library
 
-*Python library provides email checking feature based on telnet*
+*Python* library provides email checking features based on *telnet* methods
 
 
-**Basic methods**
+### Provided methods
 
 - check MX records
-```
-from mailchecker import getmx
- 
-print getmx(mail)
+```python
+from mailchecker import get_mx
+
+mail = 'sample@example.com'
+print get_mx(mail)
 ```
 
 - check open ports of MX server
-```
-" " "
-  checked ports: 25, 465, 143, 993
-" " "
-from mailchecker import getcontypes
- 
-print getcontypes(mx)
+```python
+from mailchecker import get_open_email_ports
+# default checked ports: 25, 465, 143, 993
+
+mail = 'sample@example.com'
+print get_open_email_ports(mail)
 ```
 
 - check if email is correct
-```
-from mailchecker import correctcheckmail
- 
-print correctcheckmail(mailToCheck, mailToVerify)
+```python
+from mailchecker import check_if_mail_is_correct
+
+mail_to_check = 'sample@example.com'
+my_reference_email = 'reference@example.com'
+print check_if_mail_is_correct(mail_to_check, my_reference_email)
 ```
 
 - complex mail check
-```
-from mailchecker import checkmail
+```python
+from mailchecker import full_email_check
  
-print checkmail(mailToCheck, mailToVerify)
-
+mail_to_check = 'sample@example.com'
+my_reference_email = 'reference@example.com'
+print full_email_check(mail_to_check, my_reference_email)
 ```
 
-*Distributed under Apache License.*
+### Installation
+```bash
+git clone https://github.com/inthuriel/mailchecker.git
+pip install -e ./mailchecker
+```
+
+### Licence
+
+*Distributed under GNU Library or Lesser General Public License (LGPL).*
 

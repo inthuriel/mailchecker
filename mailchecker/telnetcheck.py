@@ -1,66 +1,83 @@
-# -*- coding: utf-8 -*-
-import telnetlib
+"""
+Module for checking if email exists in domain
+"""
 import re
-from mx import getmx
-from tech import getdomain
-from ports import getcontypes
+import socket
+import telnetlib
 
-def correctcheckmail(mail, authmail):
+from .mx import get_mx
+from .ports import get_open_email_ports
+from .support_functions import getdomain
+from .mailchecker_exceptions import NoOpenEmailPortsException
 
-    mxes = getmx(mail)
-    primarymx = None
-    ports = None
 
-    breaker = False
-    for k,v in mxes:
-        for value in v:
+def check_if_mail_is_correct(mail, reference_email):
+    """
+    returns dictionary with particular information of email existence in domain
+    :param mail: email address to check
+    :param reference_email: reference email address for TELNET commands
+    :return: OrderedDict
+    """
+    mx_list = get_mx(mail)
+    main_mx_found = False
+    primary_mx = None
+
+    for priority in mx_list:
+        for domain in mx_list.get(priority):
             try:
-                ports = getcontypes(value)
-            except Exception as e:
-                response = e[0]
+                ports = get_open_email_ports(domain)
+            except NoOpenEmailPortsException:
+                ports = None
+            except RuntimeError:
+                ports = None
 
-            if ports is not None:
-                primarymx = value
-                breaker = True
+            if ports:
+                primary_mx = domain
+                main_mx_found = True
                 break
-        if breaker:
+
+        if main_mx_found:
             break
 
-    authdomain = getdomain(authmail)
+    if not primary_mx:
+        raise NoOpenEmailPortsException('Lack of MX with open port for email: {}'.format(mail))
+
+    reference_email_domain = getdomain(reference_email)
 
     try:
-        tn = telnetlib.Telnet(primarymx, 25)
-        tn.read_until('^220', 35)
-        tn.read_until('^\r\n', 5)
-    except tn.timeout:
-        raise Exception("telConErr", "Can't connect to host.")
+        telnet_connection_object = telnetlib.Telnet(primary_mx, 25)
+        telnet_connection_object.read_until('^220', 35)
+        telnet_connection_object.read_until('^\r\n', 5)
+    except socket.timeout:
+        raise LookupError('Can\'t connect to host {}.'.format(primary_mx))
 
     try:
-        tn.write("HELO "+authdomain+"\r\n")
-        tn.read_until('^\r\n', 5)
+        telnet_connection_object.write('HELO '+reference_email_domain+'\r\n')
+        telnet_connection_object.read_until('^\r\n', 5)
     except EOFError:
-        raise Exception("heloErr", "Can't send HELO.")
+        raise RuntimeError('Can\'t send HELO.')
 
     try:
-        tn.write("mail from:<"+authmail+">\r\n")
-        tn.read_until('^\r\n', 5)
+        telnet_connection_object.write('mail from:<'+reference_email+'>\r\n')
+        telnet_connection_object.read_until('^\r\n', 5)
     except EOFError:
-        raise Exception("mailFromErr", "Can't send mail from.")
-
+        raise RuntimeError('Can\'t send \'mail from\'.')
 
     try:
-        tn.write("rcpt to:<"+mail+">\r\n")
-        existenceresponse = tn.read_until('^\r\n', 10)
-        existenceresponse = re.sub('\r\n', '', existenceresponse)
+        telnet_connection_object.write('rcpt to:<'+mail+'>\r\n')
+        telnet_response = telnet_connection_object.read_until('^\r\n', 10)
+        telnet_response = re.sub(r'\r\n', '', telnet_response)
     except EOFError:
-        raise Exception("rcptErr", "Can't send rcpt to.")
+        raise RuntimeError('Can\'t send \'rcpt to\'.')
 
-    test = re.compile('^250.*')
+    true_factor_telnet_response = re.compile(r'^250.*')
 
-    if (test.match(existenceresponse.lower())):
-        resp = [1, existenceresponse]
-    else:
-        resp = [0, existenceresponse]
+    email_exists = bool(true_factor_telnet_response.match(telnet_response.lower()))
 
-    return resp
+    response = {
+        'email_exists': email_exists,
+        'checkout_message': telnet_response,
+        'checked_mx': primary_mx
+    }
 
+    return response
